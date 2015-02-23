@@ -96,23 +96,41 @@ public class HyperLogLog {
         
         return (long)estimate;
     }
+    
+    public HyperLogLog Merge(HyperLogLog h1, HyperLogLog h2) throws Exception {
+        if (h1.m != h2.m) {
+            throw new Exception("Number of registers doesn't match: " + String.valueOf(h1.m) + " != " + String.valueOf(h2.m));
+        }
+        for (int i = 0; i < h2.registers.length; i++) {
+            int r = h2.registers[i];
+            if (r > h1.registers[i]) {
+                h1.registers[i] = r;
+            }
+        }
+        return h1;
+    }
+    
+    public HyperLogLog Intersect(HyperLogLog h1, HyperLogLog h2) throws Exception {
+        if (h1.m != h2.m) {
+            throw new Exception("Number of registers doesn't match: " + String.valueOf(h1.m) + " != " + String.valueOf(h2.m));
+        }
+        
+        // Merge
+        HyperLogLog merged = Merge(h1, h2);
+        
+        // Placeholder for intersect
+        HyperLogLog intersect = new HyperLogLog(h1.m);
+        
+        // Intersect
+        for (int i = 0; i < h2.registers.length; i++) {
+            // |A INTERSECT B| = |A| + |B| - |A UNION B|
+            intersect.registers[i] = (Math.abs(h1.registers[i]) + Math.abs(h2.registers[i])) - Math.abs(merged.registers[i]);
+        }
+        
+        return h1;
+    }
+    
+    public String ToJson() {
+        return "";
+    }
 }
-
-/*
-
-// Merge another HyperLogLog into this one. The number of registers in
-// each must be the same.
-// Add up two hyperlogslogs, basically the UNION
-func (h1 *HyperLogLog) Merge(h2 *HyperLogLog) error {
-	if h1.m != h2.m {
-		return fmt.Errorf("number of registers doesn't match: %d != %d",
-			h1.m, h2.m)
-	}
-	for j, r := range h2.registers {
-		if r > h1.registers[j] {
-			h1.registers[j] = r
-		}
-	}
-	return nil
-}
-*/
