@@ -1,3 +1,9 @@
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -91,10 +97,10 @@ public class HyperLogLog {
             }
         } else if (estimate > 1.0/30.0*EXP32) {
             // Large range correction
-            estimate = -EXP32 * Math.log(1-estimate/EXP32);
+            estimate = -EXP32 * Math.log(1.0D-estimate/EXP32);
         }
         
-        return (long)estimate;
+        return (long)Math.round(estimate);
     }
     
     public HyperLogLog Merge(HyperLogLog h1, HyperLogLog h2) throws Exception {
@@ -131,6 +137,16 @@ public class HyperLogLog {
     }
     
     public String ToJson() {
-        return "";
+        Gson g = new Gson();
+        JsonObject elm = new JsonObject();
+        elm.addProperty("M", this.m);
+        elm.addProperty("B", this.b);
+        elm.addProperty("A", this.alpha);
+        JsonArray registerArr = new JsonArray();
+        for (int i = 0; i < registers.length; i++) {
+            registerArr.add(new JsonPrimitive(registers[i]));
+        }
+        elm.add("R", registerArr);
+        return g.toJson(elm);
     }
 }
