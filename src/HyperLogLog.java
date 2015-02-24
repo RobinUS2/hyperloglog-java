@@ -66,7 +66,7 @@ public class HyperLogLog {
 
         int r = rho(val << this.b, k);
 
-        int j = val >> k;
+        int j = val >> Math.abs(k);
 
         if (r > this.registers[j]) {
             this.registers[j] = r;
