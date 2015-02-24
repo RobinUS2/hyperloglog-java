@@ -52,21 +52,21 @@ public class HyperLogLog {
         this.registers = new int[this.m];
     }
 
-    private int rho(int val, int max) {
+    private int rho(long val, int max) {
         int r = 1;
         while ((val & 0x80000000) == 0 && r <= max) {
             r++;
             val <<= 1;
         }
-        return r;
+        return Math.abs(r);
     }
 
-    public void Add(int val) {
+    public void Add(long val) {
         int k = 32 - this.b;
 
         int r = rho(val << this.b, k);
 
-        int j = val >> Math.abs(k);
+        int j = (int)(val >> Math.abs(k));
 
         if (r > this.registers[j]) {
             this.registers[j] = r;
