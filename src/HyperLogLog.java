@@ -14,10 +14,10 @@ import com.google.gson.JsonPrimitive;
  *
  * @author robin
  */
-public class HyperLogLog {
+public final class HyperLogLog {
 
     private int m; // Number of registers
-    private int b;// Number of bits used to determine register index
+    private long b;// Number of bits used to determine register index
     private double alpha;// Bias correction constant
     private int[] registers; // HLL registers
 
@@ -30,7 +30,7 @@ public class HyperLogLog {
         }
 
         this.m = registers;
-        this.b = (int) Math.ceil(Math.log((double) registers) / Math.log(2));
+        this.b = getUnsignedInt((int)Math.ceil(Math.log((double) registers) / Math.log(2)));
         this.alpha = getAlpha();
         reset();
     }
@@ -52,25 +52,34 @@ public class HyperLogLog {
         this.registers = new int[this.m];
     }
 
-    private int rho(int val, int max) {
-        int r = 1;
+    private int rho(long val, long max) {
+        long r = 1;
         while ((val & 0x80000000) == 0 && r <= max) {
             r++;
             val <<= 1;
         }
-        return r;
+        return getUnsigned8Int((byte)r);
     }
 
-    public void Add(int val) {
-        int k = 32 - this.b;
+    public void Add(long val) {
+        long k = 32 - this.b;
+        
+        // Determine register value
+        int r = rho(getUnsignedInt((int)(val << this.b)), k);
 
-        int r = rho(val << this.b, k);
-
-        int j = val >> k;
-
+        // Determine register index
+        int j = (int)(val >> getUnsignedInt((int)k));
         if (r > this.registers[j]) {
             this.registers[j] = r;
         }
+    }
+    
+    public long getUnsignedInt(int x) {
+        return x & 0x00000000ffffffffL;
+    }
+    
+    public int getUnsigned8Int(int x) {
+        return x & 0xff;
     }
 
     public long Count() {
